@@ -1,7 +1,7 @@
 go 1.25
 
 use (
-    ./shared
-    ./order-management-service
-    ./order-reporting-service
+	./order-management-service
+	./order-reporting-service
+	./shared
 )

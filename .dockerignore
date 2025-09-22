@@ -1,0 +1,24 @@
+# Ignore VCS and IDE
+.git
+**/.git
+**/.idea
+**/.vscode
+
+# macOS metadata and AppleDouble resource forks
+**/.DS_Store
+**/._*
+.AppleDouble
+.LSOverride
+
+# Build artifacts and caches
+**/bin
+**/dist
+**/build
+**/tmp
+**/.cache
+
+# Go module caches (we build inside container)
+**/vendor
+
+# Node artifacts (future-proofing)
+**/node_modules

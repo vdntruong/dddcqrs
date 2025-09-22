@@ -47,14 +47,14 @@ func (h *OrderProjectionHandler) handleOrderCreated(ctx context.Context, event e
     }
     
     order := &readmodels.OrderDTO{
-        ID:              event.AggregateID,
+        ID:              event.AggregateID(),
         CustomerID:      event.CustomerID,
         Status:          "draft",
         TotalAmount:     event.TotalAmount,
         ShippingAddress: event.ShippingAddress,
         Items:           items,
-        CreatedAt:       event.OccurredAt,
-        UpdatedAt:       event.OccurredAt,
+        CreatedAt:       event.OccurredAt(),
+        UpdatedAt:       event.OccurredAt(),
     }
     
     return h.OrderReadModel.CreateOrder(ctx, order)
@@ -62,63 +62,63 @@ func (h *OrderProjectionHandler) handleOrderCreated(ctx context.Context, event e
 
 func (h *OrderProjectionHandler) handleOrderConfirmed(ctx context.Context, event events.OrderConfirmedEvent) error {
     // Get existing order
-    order, err := h.OrderReadModel.GetOrder(ctx, event.AggregateID)
+    order, err := h.OrderReadModel.GetOrder(ctx, event.AggregateID())
     if err != nil {
         return err
     }
     
     // Update status
     order.Status = "confirmed"
-    order.UpdatedAt = event.OccurredAt
+    order.UpdatedAt = event.OccurredAt()
     
     return h.OrderReadModel.UpdateOrder(ctx, order)
 }
 
 func (h *OrderProjectionHandler) handleOrderShipped(ctx context.Context, event events.OrderShippedEvent) error {
     // Get existing order
-    order, err := h.OrderReadModel.GetOrder(ctx, event.AggregateID)
+    order, err := h.OrderReadModel.GetOrder(ctx, event.AggregateID())
     if err != nil {
         return err
     }
     
     // Update status
     order.Status = "shipped"
-    order.UpdatedAt = event.OccurredAt
+    order.UpdatedAt = event.OccurredAt()
     
     return h.OrderReadModel.UpdateOrder(ctx, order)
 }
 
 func (h *OrderProjectionHandler) handleOrderDelivered(ctx context.Context, event events.OrderDeliveredEvent) error {
     // Get existing order
-    order, err := h.OrderReadModel.GetOrder(ctx, event.AggregateID)
+    order, err := h.OrderReadModel.GetOrder(ctx, event.AggregateID())
     if err != nil {
         return err
     }
     
     // Update status
     order.Status = "delivered"
-    order.UpdatedAt = event.OccurredAt
+    order.UpdatedAt = event.OccurredAt()
     
     return h.OrderReadModel.UpdateOrder(ctx, order)
 }
 
 func (h *OrderProjectionHandler) handleOrderCancelled(ctx context.Context, event events.OrderCancelledEvent) error {
     // Get existing order
-    order, err := h.OrderReadModel.GetOrder(ctx, event.AggregateID)
+    order, err := h.OrderReadModel.GetOrder(ctx, event.AggregateID())
     if err != nil {
         return err
     }
     
     // Update status
     order.Status = "cancelled"
-    order.UpdatedAt = event.OccurredAt
+    order.UpdatedAt = event.OccurredAt()
     
     return h.OrderReadModel.UpdateOrder(ctx, order)
 }
 
 func (h *OrderProjectionHandler) handleOrderItemAdded(ctx context.Context, event events.OrderItemAddedEvent) error {
     // Get existing order
-    order, err := h.OrderReadModel.GetOrder(ctx, event.AggregateID)
+    order, err := h.OrderReadModel.GetOrder(ctx, event.AggregateID())
     if err != nil {
         return err
     }
@@ -131,7 +131,7 @@ func (h *OrderProjectionHandler) handleOrderItemAdded(ctx context.Context, event
     }
     
     order.Items = append(order.Items, newItem)
-    order.UpdatedAt = event.OccurredAt
+    order.UpdatedAt = event.OccurredAt()
     
     // Recalculate total (simplified)
     total := int64(0)
@@ -145,7 +145,7 @@ func (h *OrderProjectionHandler) handleOrderItemAdded(ctx context.Context, event
 
 func (h *OrderProjectionHandler) handleOrderItemRemoved(ctx context.Context, event events.OrderItemRemovedEvent) error {
     // Get existing order
-    order, err := h.OrderReadModel.GetOrder(ctx, event.AggregateID)
+    order, err := h.OrderReadModel.GetOrder(ctx, event.AggregateID())
     if err != nil {
         return err
     }
@@ -158,7 +158,7 @@ func (h *OrderProjectionHandler) handleOrderItemRemoved(ctx context.Context, eve
         }
     }
     
-    order.UpdatedAt = event.OccurredAt
+    order.UpdatedAt = event.OccurredAt()
     
     // Recalculate total (simplified)
     total := int64(0)

@@ -6,6 +6,7 @@ import (
 
 	"github.com/vdntruong/dddcqrs/order-management-service/internal/repositories"
 	"github.com/vdntruong/dddcqrs/shared/domain/entities"
+	"github.com/vdntruong/dddcqrs/shared/domain/valueobjects"
 	"github.com/vdntruong/dddcqrs/shared/domain/events"
 	"github.com/vdntruong/dddcqrs/shared/infrastructure/eventbus"
 )
@@ -110,7 +111,7 @@ func (cs *CommandService) CancelOrder(ctx context.Context, orderID entities.Orde
     return nil
 }
 
-func (cs *CommandService) AddOrderItem(ctx context.Context, orderID entities.OrderID, productID string, quantity int, price entities.Money) error {
+func (cs *CommandService) AddOrderItem(ctx context.Context, orderID entities.OrderID, productID string, quantity int, price valueobjects.Money) error {
     // Load order
     order, err := cs.OrderRepo.FindByID(ctx, orderID)
     if err != nil {

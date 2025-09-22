@@ -12,9 +12,11 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/redis/go-redis/v9"
+	httpSwagger "github.com/swaggo/http-swagger"
 
 	"github.com/vdntruong/dddcqrs/order-reporting-service/internal/handlers"
 	"github.com/vdntruong/dddcqrs/order-reporting-service/internal/readmodels"
+	svcSwagger "github.com/vdntruong/dddcqrs/order-reporting-service/internal/swagger"
 	"github.com/vdntruong/dddcqrs/shared/infrastructure/eventbus"
 )
 
@@ -69,6 +71,12 @@ func main() {
         w.WriteHeader(http.StatusOK)
         w.Write([]byte("OK"))
     }).Methods("GET")
+
+    // Swagger docs and UI
+    router.HandleFunc("/swagger/doc.json", svcSwagger.ServeDoc).Methods("GET")
+    router.PathPrefix("/swagger/").Handler(httpSwagger.Handler(
+        httpSwagger.URL("/swagger/doc.json"),
+    ))
     
     // Start event consumer (background process)
     eventConsumer := &handlers.EventConsumer{

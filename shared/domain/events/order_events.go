@@ -34,8 +34,8 @@ func NewOrderCreatedEvent(order *entities.Order) OrderCreatedEvent {
     return OrderCreatedEvent{
         BaseDomainEvent: BaseDomainEvent{
             EventType:   "OrderCreated",
-            AggregateID: string(order.ID),
-            OccurredAt:  time.Now(),
+            AggregateIDValue: string(order.ID),
+            OccurredAtTime:   time.Now(),
         },
         CustomerID:      order.CustomerID,
         Items:           items,
@@ -53,8 +53,8 @@ func NewOrderConfirmedEvent(order *entities.Order) OrderConfirmedEvent {
     return OrderConfirmedEvent{
         BaseDomainEvent: BaseDomainEvent{
             EventType:   "OrderConfirmed",
-            AggregateID: string(order.ID),
-            OccurredAt:  time.Now(),
+            AggregateIDValue: string(order.ID),
+            OccurredAtTime:   time.Now(),
         },
         CustomerID: order.CustomerID,
     }
@@ -69,8 +69,8 @@ func NewOrderShippedEvent(order *entities.Order) OrderShippedEvent {
     return OrderShippedEvent{
         BaseDomainEvent: BaseDomainEvent{
             EventType:   "OrderShipped",
-            AggregateID: string(order.ID),
-            OccurredAt:  time.Now(),
+            AggregateIDValue: string(order.ID),
+            OccurredAtTime:   time.Now(),
         },
         CustomerID: order.CustomerID,
     }
@@ -85,8 +85,8 @@ func NewOrderDeliveredEvent(order *entities.Order) OrderDeliveredEvent {
     return OrderDeliveredEvent{
         BaseDomainEvent: BaseDomainEvent{
             EventType:   "OrderDelivered",
-            AggregateID: string(order.ID),
-            OccurredAt:  time.Now(),
+            AggregateIDValue: string(order.ID),
+            OccurredAtTime:   time.Now(),
         },
         CustomerID: order.CustomerID,
     }
@@ -102,8 +102,8 @@ func NewOrderCancelledEvent(order *entities.Order, reason string) OrderCancelled
     return OrderCancelledEvent{
         BaseDomainEvent: BaseDomainEvent{
             EventType:   "OrderCancelled",
-            AggregateID: string(order.ID),
-            OccurredAt:  time.Now(),
+            AggregateIDValue: string(order.ID),
+            OccurredAtTime:   time.Now(),
         },
         CustomerID: order.CustomerID,
         Reason:     reason,
@@ -121,8 +121,8 @@ func NewOrderItemAddedEvent(order *entities.Order, productID string, quantity in
     return OrderItemAddedEvent{
         BaseDomainEvent: BaseDomainEvent{
             EventType:   "OrderItemAdded",
-            AggregateID: string(order.ID),
-            OccurredAt:  time.Now(),
+            AggregateIDValue: string(order.ID),
+            OccurredAtTime:   time.Now(),
         },
         ProductID: productID,
         Quantity:  quantity,
@@ -139,8 +139,8 @@ func NewOrderItemRemovedEvent(order *entities.Order, productID string) OrderItem
     return OrderItemRemovedEvent{
         BaseDomainEvent: BaseDomainEvent{
             EventType:   "OrderItemRemoved",
-            AggregateID: string(order.ID),
-            OccurredAt:  time.Now(),
+            AggregateIDValue: string(order.ID),
+            OccurredAtTime:   time.Now(),
         },
         ProductID: productID,
     }

@@ -1,0 +1,65 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Order Management Service API",
+    "version": "1.0.0"
+  },
+  "servers": [
+    { "url": "/" }
+  ],
+  "paths": {
+    "/api/v1/orders": {
+      "post": {
+        "summary": "Create an order",
+        "responses": {
+          "201": { "description": "Created" },
+          "400": { "description": "Bad Request" }
+        }
+      },
+      "get": {
+        "summary": "List orders (if implemented)",
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/v1/orders/{id}": {
+      "put": {
+        "summary": "Update an order",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Updated" },
+          "400": { "description": "Bad Request" },
+          "404": { "description": "Not Found" }
+        }
+      }
+    },
+    "/api/v1/orders/{id}/confirm": {
+      "post": {
+        "summary": "Confirm an order",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Confirmed" },
+          "404": { "description": "Not Found" }
+        }
+      }
+    },
+    "/api/v1/orders/{id}/cancel": {
+      "post": {
+        "summary": "Cancel an order",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "Cancelled" },
+          "404": { "description": "Not Found" }
+        }
+      }
+    },
+    "/health": {
+      "get": { "summary": "Health check", "responses": { "200": { "description": "OK" } } }
+    }
+  }
+}

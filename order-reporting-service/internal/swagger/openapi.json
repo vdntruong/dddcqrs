@@ -1,0 +1,39 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Order Reporting Service API",
+    "version": "1.0.0"
+  },
+  "servers": [
+    { "url": "/" }
+  ],
+  "paths": {
+    "/api/v1/orders/{id}": {
+      "get": {
+        "summary": "Get order by ID",
+        "parameters": [
+          { "name": "id", "in": "path", "required": true, "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": { "description": "OK" },
+          "404": { "description": "Not Found" }
+        }
+      }
+    },
+    "/api/v1/orders": {
+      "get": {
+        "summary": "List orders",
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/api/v1/analytics/orders": {
+      "get": {
+        "summary": "Get order analytics",
+        "responses": { "200": { "description": "OK" } }
+      }
+    },
+    "/health": {
+      "get": { "summary": "Health check", "responses": { "200": { "description": "OK" } } }
+    }
+  }
+}

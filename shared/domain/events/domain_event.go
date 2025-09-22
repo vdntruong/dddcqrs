@@ -9,9 +9,9 @@ type DomainEvent interface {
 }
 
 type BaseDomainEvent struct {
-    EventType   string    `json:"event_type"`
-    AggregateID string    `json:"aggregate_id"`
-    OccurredAt  time.Time `json:"occurred_at"`
+    EventType       string    `json:"event_type"`
+    AggregateIDValue string    `json:"aggregate_id"`
+    OccurredAtTime   time.Time `json:"occurred_at"`
 }
 
 func (e BaseDomainEvent) Type() string {
@@ -19,9 +19,9 @@ func (e BaseDomainEvent) Type() string {
 }
 
 func (e BaseDomainEvent) AggregateID() string {
-    return e.AggregateID
+    return e.AggregateIDValue
 }
 
 func (e BaseDomainEvent) OccurredAt() time.Time {
-    return e.OccurredAt
+    return e.OccurredAtTime
 }
