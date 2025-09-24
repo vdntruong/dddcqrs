@@ -7,6 +7,7 @@ This repository demonstrates the implementation of **CQRS (Command Query Respons
 - [Overview](#overview)
 - [Domain-Driven Design (DDD)](#domain-driven-design-ddd)
 - [CQRS (Command Query Responsibility Segregation)](#cqrs-command-query-responsibility-segregation)
+- [Change Data Capture (CDC)](#change-data-capture-cdc)
 - [Project Structure](#project-structure)
 - [Getting Started](#getting-started)
 - [Examples](#examples)
@@ -505,6 +506,127 @@ func (h *UserProjectionHandler) Handle(event DomainEvent) error {
     return nil
 }
 ```
+
+## Change Data Capture (CDC)
+
+CDC is an alternative to the traditional Outbox pattern for achieving eventual consistency between the Command and Query sides. Instead of writing domain events explicitly to an outbox table, CDC taps into the database's transaction log (e.g., PostgreSQL WAL) to emit change events (insert/update/delete) to a streaming platform like Kafka. Your Query service consumes these change events to update read models (projections).
+
+### When to use CDC vs Outbox
+
+- **Use CDC when:**
+  - You want minimal application code changes in the Command service.
+  - Your database supports logical decoding and reliable log-based capture.
+  - You need to capture any table changes, including those from legacy systems or multiple writers.
+- **Use Outbox when:**
+  - You prefer explicit domain events and tighter control of the event schema.
+  - You need exactly-once semantics with application-level idempotency and ordering.
+  - You want to avoid tight coupling to specific database features.
+
+### Architecture (CDC-based CQRS)
+
+```mermaid
+flowchart LR
+  A[Command Service<br/>PostgreSQL (WAL)] -- WAL --> B[Kafka Connect + Debezium<br/>(CDC)]
+  B -- topics:user.public.users --> C[Kafka]
+  C -- consume --> D[Query Service<br/>Projections/Read Models]
+```
+
+### Docker Compose additions (Kafka Connect with Debezium)
+
+Below is an example of adding Kafka Connect with the Debezium PostgreSQL connector to the existing `docker-compose.yml`. Note: enabling logical decoding on Postgres may require custom configuration (e.g., `wal_level=logical`).
+
+```yaml
+# Add to docker-compose.yml
+  kafka-connect:
+    image: confluentinc/cp-kafka-connect:7.4.0
+    depends_on:
+      kafka:
+        condition: service_healthy
+      zookeeper:
+        condition: service_started
+    ports:
+      - "8083:8083"
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: "kafka:9092"
+      CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect
+      CONNECT_REST_PORT: 8083
+      CONNECT_GROUP_ID: "cdc-connect-group"
+      CONNECT_CONFIG_STORAGE_TOPIC: "_connect-configs"
+      CONNECT_OFFSET_STORAGE_TOPIC: "_connect-offsets"
+      CONNECT_STATUS_STORAGE_TOPIC: "_connect-status"
+      CONNECT_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_INTERNAL_KEY_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_INTERNAL_VALUE_CONVERTER: "org.apache.kafka.connect.json.JsonConverter"
+      CONNECT_PLUGIN_PATH: "/usr/share/java,/etc/kafka-connect/jars"
+      # Optional: reduce noisy SMT errors during dev
+      CONNECT_LOG4J_ROOT_LOGLEVEL: "INFO"
+    volumes:
+      - ./connect-jars:/etc/kafka-connect/jars
+```
+
+To enable logical decoding on PostgreSQL (development), you can use a custom image or command flags. Example:
+
+```yaml
+  postgres:
+    image: debezium/postgres:16
+    environment:
+      POSTGRES_DB: ecommerce_orders
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      # Debezium image already sets wal_level=logical, max_wal_senders, etc.
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+```
+
+### Sample Debezium PostgreSQL connector
+
+Create the connector by POSTing this JSON to `http://localhost:8083/connectors`:
+
+```json
+{
+  "name": "ecommerce-orders-postgres-cdc",
+  "config": {
+    "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
+    "database.hostname": "postgres",
+    "database.port": "5432",
+    "database.user": "postgres",
+    "database.password": "password",
+    "database.dbname": "ecommerce_orders",
+    "topic.prefix": "ecommerce",
+    "slot.name": "ecommerce_slot",
+    "publication.autocreate.mode": "filtered",
+    "plugin.name": "pgoutput",
+    "tombstones.on.delete": "false",
+    "include.schema.changes": "false",
+    "decimal.handling.mode": "double",
+    "time.precision.mode": "adaptive_time_microseconds",
+    "snapshot.mode": "initial",
+    "schema.include.list": "public",
+    "table.include.list": "public.orders,public.order_items,public.customers"
+  }
+}
+```
+
+This will produce topics like `ecommerce.public.orders`, with messages (create/update/delete) carrying `before`/`after` rows and metadata.
+
+### Consuming CDC events in the Query Service
+
+- **Projection design:** Map table-oriented CDC events to your read models. For example, when consuming from `ecommerce.public.orders`, translate `after` payloads into `OrderReadModel` upserts, and map deletes to tombstoning.
+- **Idempotency:** Debezium provides keys and source metadata (`lsn`, `ts_ms`). Use these to implement idempotent upserts in the read store. Store the last processed LSN per topic/partition to avoid duplicates on replays.
+- **Ordering and retries:** Process per-key ordering; use partitioning by aggregate ID if possible. Implement retry with backoff and dead-letter topics for poison messages.
+- **Enrichment:** If you still prefer domain semantics, you can enrich CDC events within the consumer to emit domain-level projections.
+
+### CDC vs Outbox: trade-offs
+
+- **CDC pros:** Minimal app changes, great for legacy systems, can capture all writes. Operates at DB boundary with strong ordering guarantees per table.
+- **CDC cons:** Events are table-centric (not domain-centric), schema drift needs management, dependency on DB-specific features, snapshot behavior must be planned.
+- **Outbox pros:** Domain-event-centric, explicit schemas, well-aligned with DDD aggregates, easier evolution of event contracts.
+- **Outbox cons:** Requires app code to write outbox and a background publisher, dual-writes to outbox and main tables (usually within one TX).
+
+---
 
 ## Project Structure with Go Workspace
 
@@ -1456,6 +1578,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [CQRS Pattern](https://docs.microsoft.com/en-us/azure/architecture/patterns/cqrs)
 - [Go Best Practices](https://golang.org/doc/effective_go.html)
 - [Event Sourcing Pattern](https://docs.microsoft.com/en-us/azure/architecture/patterns/event-sourcing)
+- [Real-Time database change tracking in Go (CDC)](https://packagemain.tech/p/real-time-database-change-tracking)
 
 ## Acknowledgments
 
