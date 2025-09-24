@@ -1579,6 +1579,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - [Go Best Practices](https://golang.org/doc/effective_go.html)
 - [Event Sourcing Pattern](https://docs.microsoft.com/en-us/azure/architecture/patterns/event-sourcing)
 - [Real-Time database change tracking in Go (CDC)](https://packagemain.tech/p/real-time-database-change-tracking)
+- [How Netflix Tudum Supports 20 Million Users With CQRS](https://blog.bytebytego.com/p/how-netflix-tudum-supports-20-million)
 
 ## Acknowledgments
 
